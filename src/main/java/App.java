@@ -1,33 +1,34 @@
-import consoleMenu.*;
+import consoleMenuService.*;
+import storage.Storage;
+import tables.DeveloperDaoService;
 
-import java.util.HashMap;
+import java.sql.SQLException;
 
 public class App {
-    public static void main(String[] args) {
-        FillerMenuContent fillerMenuContent = new FillerMenuContent();
-        Menu mainMenu = new Menu("Main");
-        mainMenu.setContentMenu(fillerMenuContent.fill("Main"));
-        Menu developersMenu = new Menu("Developers");
-        developersMenu.setContentMenu(fillerMenuContent.fill("Developers"));
-        Menu projectsMenu = new Menu("Projects");
-        projectsMenu.setContentMenu(fillerMenuContent.fill("Projects"));
-        Menu companiesMenu = new Menu("Companies");
-        companiesMenu.setContentMenu(fillerMenuContent.fill("Companies"));
-        Menu customersMenu = new Menu("Customers");
-        customersMenu.setContentMenu(fillerMenuContent.fill("Customers"));
+    public static void main(String[] args) throws SQLException, InterruptedException {
+
+        MenuService menuService = new MenuService();
+        menuService.create();
+
+        Storage storage = Storage.getInstance();
+        DeveloperDaoService developerDaoService = new DeveloperDaoService(storage.getConnection());
+
         int choice;
         do {
-            mainMenu.printMenu();
-            choice = mainMenu.makeChoice();
+            menuService.get("Main").printMenu();
+            choice = menuService.get("Main").makeChoice();
             switch (choice) {
                 case 1:
                     int choiceDevelopers;
                     do {
-                        developersMenu.printMenu();
-                        choiceDevelopers = developersMenu.makeChoice();
+                        menuService.get("Developers").printMenu();
+                        choiceDevelopers = menuService.get("Developers").makeChoice();
                         switch (choiceDevelopers) {
+                            case 1:
+                                developerDaoService.getAllLastNames();
+                                break;
                             case 2:
-                                System.out.println("Вы выбрали 2. Что хотите еще?");
+                                developerDaoService.getInfoByLastName();
                                 break;
                             case 3:
                                 System.out.println("Вы выбрали 3. Что хотите еще?");
@@ -40,8 +41,8 @@ public class App {
                 case 2:
                     int choiceProjects;
                     do {
-                        projectsMenu.printMenu();
-                        choiceProjects = projectsMenu.makeChoice();
+                        menuService.get("Projects").printMenu();
+                        choiceProjects = menuService.get("Projects").makeChoice();
                         switch (choiceProjects) {
                             case 2:
                                 System.out.println("Вы выбрали 2. Что хотите еще?");
@@ -57,8 +58,8 @@ public class App {
                 case 3:
                     int choiceCompanies;
                     do {
-                        companiesMenu.printMenu();
-                        choiceCompanies = companiesMenu.makeChoice();
+                        menuService.get("Companies").printMenu();
+                        choiceCompanies = menuService.get("Companies").makeChoice();
                         switch (choiceCompanies) {
                             case 2:
                                 System.out.println("Вы выбрали 2. Что хотите еще?");
@@ -74,8 +75,8 @@ public class App {
                 case 4:
                     int choiceCastomers;
                     do {
-                        customersMenu.printMenu();
-                        choiceCastomers = customersMenu.makeChoice();
+                        menuService.get("Customers").printMenu();
+                        choiceCastomers = menuService.get("Customers").makeChoice();
                         switch (choiceCastomers) {
                             case 2:
                                 System.out.println("Вы выбрали 2. Что хотите еще?");
@@ -93,4 +94,6 @@ public class App {
             }
         } while (choice != 11);
     }
+
+
 }

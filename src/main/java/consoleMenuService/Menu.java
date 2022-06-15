@@ -1,4 +1,4 @@
-package consoleMenu;
+package consoleMenuService;
 
 import lombok.*;
 
@@ -49,10 +49,4 @@ public class Menu {
             return result;
         }
     }
-
-/*
-    public Object createElement();
-    public Object deleteElement();
-*/
-
 }
