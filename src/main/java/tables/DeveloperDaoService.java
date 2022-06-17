@@ -154,6 +154,7 @@ public class DeveloperDaoService {
         }
     }
 
+    // todo все компании и заказчики добавлены, можно прорабатывать логику добавления разработчика
 
 /*
     public void addDeveloper () throws SQLException {
