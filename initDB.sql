@@ -2,7 +2,7 @@ create database it_market;
 use it_market;
 create table companies (
 company_id int not null auto_increment,
-name varchar(100),
+company_name varchar(100),
 rating varchar(50) not null, 
 PRIMARY KEY (company_id),
 check (rating in ('low', 'middle', 'hight'))
@@ -33,13 +33,13 @@ foreign key (skill_id) references skills (skill_id)
 );
 create table customers (
 customer_id int not null auto_increment,
-name varchar(100),
+customer_name varchar(100),
 reputation varchar(50) not null check (reputation in ('insolvent', 'trustworthy', 'respectable')),
 primary key (customer_id)
 );
 create table projects (
 project_id int not null auto_increment,
-name varchar(100) not null,
+project_name varchar(100) not null,
 company_id int not null,
 customer_id int not null,
 cost int not null,
@@ -51,7 +51,6 @@ foreign key (customer_id) references customers (customer_id)
 create table projects_developers (
 project_id int not null,
 developer_id int not null,
-start_date date,
 primary key (project_id, developer_id),
 foreign key (project_id ) references projects (project_id),
 foreign key (developer_id) references developers (developer_id)

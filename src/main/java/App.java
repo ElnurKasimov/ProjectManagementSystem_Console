@@ -1,8 +1,12 @@
 import consoleMenuService.*;
 import storage.Storage;
+import tables.Company;
+import tables.CompanyDaoService;
+import tables.CustomerDaoService;
 import tables.DeveloperDaoService;
 
 import java.sql.SQLException;
+import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) throws SQLException, InterruptedException {
@@ -12,6 +16,8 @@ public class App {
 
         Storage storage = Storage.getInstance();
         DeveloperDaoService developerDaoService = new DeveloperDaoService(storage.getConnection());
+        CompanyDaoService companyDaoService = new CompanyDaoService(storage.getConnection());
+        CustomerDaoService customerDaoService = new CustomerDaoService(storage.getConnection());
 
         int choice;
         do {
@@ -28,13 +34,19 @@ public class App {
                                 developerDaoService.getAllLastNames();
                                 break;
                             case 2:
-                                developerDaoService.getInfoByLastName();
+                                System.out.print("Введите фамилию : ");
+                                Scanner sc = new Scanner(System.in);
+                                String lastNameInput = sc.nextLine();
+                                developerDaoService.getInfoByLastName(lastNameInput);
+                                developerDaoService.getSkillsByLastName(lastNameInput);
+                                developerDaoService.getProjectsByLastName(lastNameInput);
                                 break;
                             case 3:
-                                System.out.println("Вы выбрали 3. Что хотите еще?");
+                                developerDaoService.getQuantityJavaDevelopers();
                                 break;
                             case 4:
-                                System.out.println("Вы выбрали 4. Что хотите еще?");
+                                developerDaoService.getListMiddleDevelopers();
+                                break;
                         }
                     } while (choiceDevelopers != 8);
                     break;
@@ -61,6 +73,9 @@ public class App {
                         menuService.get("Companies").printMenu();
                         choiceCompanies = menuService.get("Companies").makeChoice();
                         switch (choiceCompanies) {
+                            case 1:
+                                companyDaoService.getAllNames();
+                                break;
                             case 2:
                                 System.out.println("Вы выбрали 2. Что хотите еще?");
                                 break;
@@ -73,11 +88,14 @@ public class App {
                     } while (choiceCompanies != 5);
                     break;
                 case 4:
-                    int choiceCastomers;
+                    int choiceCustomers;
                     do {
                         menuService.get("Customers").printMenu();
-                        choiceCastomers = menuService.get("Customers").makeChoice();
-                        switch (choiceCastomers) {
+                        choiceCustomers = menuService.get("Customers").makeChoice();
+                        switch (choiceCustomers) {
+                            case 1:
+                                customerDaoService.getAllNames();
+                                break;
                             case 2:
                                 System.out.println("Вы выбрали 2. Что хотите еще?");
                                 break;
@@ -87,7 +105,7 @@ public class App {
                             case 4:
                                 System.out.println("Вы выбрали 4. Что хотите еще?");
                         }
-                    } while (choiceCastomers != 5);
+                    } while (choiceCustomers != 5);
                     break;
                 case 10:
                     System.out.println("Вы выбрали 10. Что хотите еще?");

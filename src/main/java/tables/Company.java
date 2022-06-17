@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @Data
 public class Company {
     private long company_id;
-    private String name;
+    private String company_name;
     private Rating rating;
 
     public enum Rating {
