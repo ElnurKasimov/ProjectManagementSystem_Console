@@ -46,25 +46,22 @@ public class CustomerDaoService {
 
         public void getAllNames() throws SQLException {
             System.out.println("Список всех  заказчиков :");
-
-
-                try (ResultSet rs = getAllNamesSt.executeQuery()) {
-                    while (rs.next()) {
-                        long customerID = rs.getLong("customer_id");
-                        String customerName = rs.getString("customer_name");
-                        String customerReputation = rs.getString("reputation");
-                        System.out.print("\t" + customerID + ". " + customerName + ", репутация - " + customerReputation);
-                        System.out.println(", является заказчиком следующих проектов: ");
-                        getProjectsNamesSt.setString(1, "%" + customerName + "%");
-                        try (ResultSet rs1 = getProjectsNamesSt.executeQuery()) {
-                            while (rs1.next()) {
-                                System.out.println("\t\t" + rs1.getString("project_name"));
-                            }
+            try (ResultSet rs = getAllNamesSt.executeQuery()) {
+                while (rs.next()) {
+                    long customerID = rs.getLong("customer_id");
+                    String customerName = rs.getString("customer_name");
+                    String customerReputation = rs.getString("reputation");
+                    System.out.print("\t" + customerID + ". " + customerName + ", репутация - " + customerReputation);
+                    System.out.println(", является заказчиком следующих проектов: ");
+                    getProjectsNamesSt.setString(1, "%" + customerName + "%");
+                    try (ResultSet rs1 = getProjectsNamesSt.executeQuery()) {
+                        while (rs1.next()) {
+                            System.out.println("\t\t" + rs1.getString("project_name"));
                         }
                     }
                 }
+            }
 
         }
-
 
 }

@@ -1,9 +1,6 @@
 import consoleMenuService.*;
 import storage.Storage;
-import tables.Company;
-import tables.CompanyDaoService;
-import tables.CustomerDaoService;
-import tables.DeveloperDaoService;
+import tables.*;
 
 import java.sql.SQLException;
 import java.util.Scanner;
@@ -16,6 +13,7 @@ public class App {
 
         Storage storage = Storage.getInstance();
         DeveloperDaoService developerDaoService = new DeveloperDaoService(storage.getConnection());
+        ProjectDaoService projectDaoService = new ProjectDaoService(storage.getConnection());
         CompanyDaoService companyDaoService = new CompanyDaoService(storage.getConnection());
         CustomerDaoService customerDaoService = new CustomerDaoService(storage.getConnection());
 
@@ -40,6 +38,7 @@ public class App {
                                 developerDaoService.getInfoByLastName(lastNameInput);
                                 developerDaoService.getSkillsByLastName(lastNameInput);
                                 developerDaoService.getProjectsByLastName(lastNameInput);
+
                                 break;
                             case 3:
                                 developerDaoService.getQuantityJavaDevelopers();
@@ -56,8 +55,14 @@ public class App {
                         menuService.get("Projects").printMenu();
                         choiceProjects = menuService.get("Projects").makeChoice();
                         switch (choiceProjects) {
+                            case 1:
+                                projectDaoService.getAllNames();
+                                break;
                             case 2:
-                                System.out.println("Вы выбрали 2. Что хотите еще?");
+                                System.out.print("Введите название проекта : ");
+                                Scanner sc = new Scanner(System.in);
+                                String projectNameInput = sc.nextLine();
+                                projectDaoService.getInfoByName(projectNameInput);
                                 break;
                             case 3:
                                 System.out.println("Вы выбрали 3. Что хотите еще?");
