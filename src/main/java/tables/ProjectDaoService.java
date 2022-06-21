@@ -15,7 +15,9 @@ public class ProjectDaoService {
     private PreparedStatement getAllNamesSt;
     private PreparedStatement getCompanyNameByProjectNameSt;
     private PreparedStatement getCustomerNameByProjectNameSt;
-    private PreparedStatement  getCostDateSt;
+    private PreparedStatement getCostDateSt;
+    private PreparedStatement getQuantityDevelopersByProjectNameSt;
+    private PreparedStatement getBudgetByProjectNameSt;
 
 
     public ProjectDaoService(Connection connection) throws SQLException {
@@ -58,6 +60,21 @@ public class ProjectDaoService {
                 " SELECT cost, start_date FROM projects " +
                            " WHERE  project_name LIKE   ?"
         );
+
+        getQuantityDevelopersByProjectNameSt = connection.prepareStatement(
+                "SELECT COUNT(developer_id) FROM projects JOIN projects_developers " +
+                           "ON projects.project_id = projects_developers.project_id " +
+                            " WHERE project_name  LIKE  ?"
+        );
+
+        getBudgetByProjectNameSt = connection.prepareStatement(
+                "SELECT SUM(salary) FROM projects JOIN projects_developers " +
+                        "ON projects.project_id = projects_developers.project_id " +
+                        "JOIN developers ON projects_developers.developer_id = developers.developer_id " +
+                        " WHERE project_name  LIKE  ?"
+        );
+
+
     }
 
     public void getAllNames() throws SQLException {
@@ -94,7 +111,26 @@ public class ProjectDaoService {
                 System.out.println("\t\tзапущен " + LocalDate.parse(rs.getString("start_date")));
             }
         }
-
     }
+
+    public void getQuantityDevelopers (String name) throws SQLException {
+        getQuantityDevelopersByProjectNameSt.setString(1, name);
+        try (ResultSet rs1 = getQuantityDevelopersByProjectNameSt.executeQuery()) {
+            while (rs1.next()) {
+                System.out.println("\t\tВ данном проекте задействовано " +  rs1.getInt("COUNT(developer_id)") + " разработчика(ов)");
+            }
+        }
+    }
+
+    public void getBudgetByProjectName (String name) throws SQLException {
+        getBudgetByProjectNameSt.setString(1, name);
+        try (ResultSet rs1 = getBudgetByProjectNameSt.executeQuery()) {
+            while (rs1.next()) {
+                System.out.println("\t\tБюджет данного проекта - " +  rs1.getInt("SUM(salary)"));
+            }
+        }
+    }
+
+
 
 }

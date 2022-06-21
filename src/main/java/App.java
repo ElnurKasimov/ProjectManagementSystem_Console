@@ -55,20 +55,28 @@ public class App {
                         menuService.get("Projects").printMenu();
                         choiceProjects = menuService.get("Projects").makeChoice();
                         switch (choiceProjects) {
+
                             case 1:
                                 projectDaoService.getAllNames();
                                 break;
                             case 2:
                                 System.out.print("Введите название проекта : ");
-                                Scanner sc = new Scanner(System.in);
-                                String projectNameInput = sc.nextLine();
-                                projectDaoService.getInfoByName(projectNameInput);
+                                Scanner sc2 = new Scanner(System.in);
+                                String projectNameInput2 = sc2.nextLine();
+                                projectDaoService.getInfoByName(projectNameInput2);
                                 break;
                             case 3:
-                                System.out.println("Вы выбрали 3. Что хотите еще?");
+                                System.out.print("Введите название проекта : ");
+                                Scanner sc3 = new Scanner(System.in);
+                                String projectNameInput3 = sc3.nextLine();
+                                projectDaoService.getQuantityDevelopers(projectNameInput3);
                                 break;
                             case 4:
-                                System.out.println("Вы выбрали 4. Что хотите еще?");
+                                System.out.print("Введите название проекта : ");
+                                Scanner sc4 = new Scanner(System.in);
+                                String projectNameInput4 = sc4.nextLine();
+                                projectDaoService.getBudgetByProjectName(projectNameInput4);
+                                break;
                         }
                     } while (choiceProjects != 9);
                     break;
