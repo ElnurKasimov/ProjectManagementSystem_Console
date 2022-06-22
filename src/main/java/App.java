@@ -38,13 +38,19 @@ public class App {
                                 developerDaoService.getInfoByLastName(lastNameInput);
                                 developerDaoService.getSkillsByLastName(lastNameInput);
                                 developerDaoService.getProjectsByLastName(lastNameInput);
-
                                 break;
                             case 3:
                                 developerDaoService.getQuantityJavaDevelopers();
                                 break;
                             case 4:
                                 developerDaoService.getListMiddleDevelopers();
+                                break;
+                            case 5:
+                                developerDaoService.addDeveloper();
+                                break;
+                            case 6:
+                                System.out.println("Для внесения изменения хоть в одно поле данных необходимо обновить все поля");
+                                developerDaoService.addDeveloper();
                                 break;
                         }
                     } while (choiceDevelopers != 8);
@@ -69,13 +75,16 @@ public class App {
                                 System.out.print("Введите название проекта : ");
                                 Scanner sc3 = new Scanner(System.in);
                                 String projectNameInput3 = sc3.nextLine();
-                                projectDaoService.getQuantityDevelopers(projectNameInput3);
+                                projectDaoService.getListDevelopers(projectNameInput3);
                                 break;
                             case 4:
                                 System.out.print("Введите название проекта : ");
                                 Scanner sc4 = new Scanner(System.in);
                                 String projectNameInput4 = sc4.nextLine();
                                 projectDaoService.getBudgetByProjectName(projectNameInput4);
+                                break;
+                            case 5:
+                                projectDaoService.getProjectsListInSpecialFormat();
                                 break;
                         }
                     } while (choiceProjects != 9);
@@ -120,11 +129,7 @@ public class App {
                         }
                     } while (choiceCustomers != 5);
                     break;
-                case 10:
-                    System.out.println("Вы выбрали 10. Что хотите еще?");
             }
-        } while (choice != 11);
+        } while (choice != 5);
     }
-
-
 }

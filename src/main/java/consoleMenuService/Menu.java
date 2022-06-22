@@ -17,8 +17,8 @@ public class Menu {
     }
 
     public void printMenu () {
-        if(name.equals("Main")) {System.out.println("В данной БД вы можете работать с такими таблицами:");}
-        else {System.out.println("В данной таблице вы можете работать с такими данными:");}
+        if(name.equals("Main")) {System.out.println("\tВ данной БД вы можете работать с такими таблицами:");}
+        else {System.out.println("\tВ данной таблице вы можете работать с такими данными:");}
         for (Map.Entry<Integer, String> element : contentMenu.entrySet()) {
             System.out.println(element.getKey() + " - " + element.getValue());
         }
@@ -45,7 +45,7 @@ public class Menu {
         }
         if (result) return result;
         else {
-            System.out.print("Вы сделали невозможный выбор, пожалуйста повторите :");
+            System.out.print("\tВы сделали невозможный выбор, пожалуйста повторите :");
             return result;
         }
     }

@@ -16,8 +16,10 @@ public class ProjectDaoService {
     private PreparedStatement getCompanyNameByProjectNameSt;
     private PreparedStatement getCustomerNameByProjectNameSt;
     private PreparedStatement getCostDateSt;
+    private PreparedStatement getListDevelopersSt;
     private PreparedStatement getQuantityDevelopersByProjectNameSt;
     private PreparedStatement getBudgetByProjectNameSt;
+    private PreparedStatement getIdProjectByNameSt;
 
 
     public ProjectDaoService(Connection connection) throws SQLException {
@@ -41,30 +43,37 @@ public class ProjectDaoService {
         }
 
         getAllNamesSt = connection.prepareStatement(
-                " SELECT project_id, project_name FROM projects"
+                " SELECT project_id, project_name, start_date FROM projects"
         );
 
         getCompanyNameByProjectNameSt = connection.prepareStatement(
                 " SELECT company_name FROM projects JOIN companies " +
-                            "ON projects.company_id = companies.company_id " +
-                            " WHERE  project_name LIKE   ?"
+                        "ON projects.company_id = companies.company_id " +
+                        " WHERE  project_name LIKE   ?"
         );
 
         getCustomerNameByProjectNameSt = connection.prepareStatement(
                 " SELECT customer_name FROM projects JOIN customers " +
-                           "ON projects.customer_id = customers.customer_id " +
-                           " WHERE  project_name LIKE   ?"
+                        "ON projects.customer_id = customers.customer_id " +
+                        " WHERE  project_name LIKE   ?"
         );
 
         getCostDateSt = connection.prepareStatement(
                 " SELECT cost, start_date FROM projects " +
-                           " WHERE  project_name LIKE   ?"
+                        " WHERE  project_name LIKE   ?"
+        );
+
+        getListDevelopersSt = connection.prepareStatement(
+                "SELECT lastName, firstName FROM projects JOIN projects_developers " +
+                "ON projects.project_id = projects_developers.project_id " +
+                "JOIN developers ON projects_developers.developer_id = developers.developer_id " +
+                "WHERE project_name  LIKE ?"
         );
 
         getQuantityDevelopersByProjectNameSt = connection.prepareStatement(
                 "SELECT COUNT(developer_id) FROM projects JOIN projects_developers " +
-                           "ON projects.project_id = projects_developers.project_id " +
-                            " WHERE project_name  LIKE  ?"
+                        "ON projects.project_id = projects_developers.project_id " +
+                        " WHERE project_name  LIKE  ?"
         );
 
         getBudgetByProjectNameSt = connection.prepareStatement(
@@ -74,6 +83,10 @@ public class ProjectDaoService {
                         " WHERE project_name  LIKE  ?"
         );
 
+        getIdProjectByNameSt = connection.prepareStatement(
+                "SELECT project_id FROM projects " +
+                        "WHERE project_name  LIKE  ?"
+        );
 
     }
 
@@ -113,6 +126,17 @@ public class ProjectDaoService {
         }
     }
 
+    public void getListDevelopers (String name) throws SQLException {
+        System.out.println("\tВ проекте " + name + " задействованы следующие разработчики: ");
+        getListDevelopersSt.setString(1, name);
+        try (ResultSet rs1 = getListDevelopersSt.executeQuery()) {
+            while (rs1.next()) {
+                System.out.println(rs1.getString("lastName") + " " + rs1.getString("firstName") );
+            }
+        }
+    }
+
+
     public void getQuantityDevelopers (String name) throws SQLException {
         getQuantityDevelopersByProjectNameSt.setString(1, name);
         try (ResultSet rs1 = getQuantityDevelopersByProjectNameSt.executeQuery()) {
@@ -131,6 +155,29 @@ public class ProjectDaoService {
         }
     }
 
+    public void getProjectsListInSpecialFormat () throws SQLException {
+        try (ResultSet rs = getAllNamesSt.executeQuery()) {
+            while (rs.next()) {
+                System.out.print("\t" + LocalDate.parse(rs.getString("start_date")));
+                String projectName = rs.getString("project_name");
+                System.out.print(", " + projectName);
+                getQuantityDevelopersByProjectNameSt.setString(1, projectName);
+                try (ResultSet rs1 = getQuantityDevelopersByProjectNameSt.executeQuery()) {
+                    while (rs1.next()) {
+                        System.out.println(", " + rs1.getInt("COUNT(developer_id)") + " разработчика(ов)");
+                    }
+                }
+            }
+        }
+    }
 
-
+    public long getIdProjectByName(String name) throws SQLException {
+        getIdProjectByNameSt.setString(1, "%" + name + "%");
+        int result = 0;
+        try (ResultSet rs = getIdProjectByNameSt.executeQuery()) {
+            rs.next();
+            result = rs.getInt("project_id");
+        }
+        return result;
+    }
 }

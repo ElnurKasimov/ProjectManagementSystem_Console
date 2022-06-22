@@ -12,8 +12,7 @@ public class FillerContent {
              contentMenu.put(2, "Projects");
              contentMenu.put(3, "Companies");
              contentMenu.put(4, "Customers");
-             contentMenu.put(10, "Create table");
-             contentMenu.put(11, "Quit");
+             contentMenu.put(5, "Выйти из программы");
              break;
          case "Developers":
              contentMenu.put(1, "вывести всех разработчиков по фамилии");

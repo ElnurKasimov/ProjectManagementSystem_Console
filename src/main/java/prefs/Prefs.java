@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class Prefs {
     public static final String DB_JDBC_CONNECTION_URL = "dbUrl";
@@ -48,10 +49,4 @@ public class Prefs {
         return prefs.get(key);
     }
 
-    public static void main(String[] args) {
-        Prefs pr = new Prefs("prefs.json");
-        System.out.println("dbUrl = " + pr.getPref("dbUrl") );
-        System.out.println("dbUserName = " + pr.getPref("dbUserName") );
-        System.out.println("dbPassword = " + pr.getPref("dbPassword") );
-    }
 }
