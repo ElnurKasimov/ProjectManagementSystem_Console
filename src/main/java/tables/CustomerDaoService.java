@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CustomerDaoService {
-    private List<Customer> customers = new ArrayList<>();
+    public static  List<Customer> customers = new ArrayList<>();
 
     private PreparedStatement getAllInfoSt;
     private PreparedStatement getAllNamesSt;

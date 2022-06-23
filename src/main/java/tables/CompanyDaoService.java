@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CompanyDaoService {
-    private List<Company> companies = new ArrayList<>();
+    public static List<Company> companies = new ArrayList<>();
 
     private PreparedStatement getAllInfoSt;
     private PreparedStatement getQuantityEmployeeSt;

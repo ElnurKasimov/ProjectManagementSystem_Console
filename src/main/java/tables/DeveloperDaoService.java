@@ -4,11 +4,12 @@ import storage.Storage;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
 public class DeveloperDaoService {
-    private  List<Developer> developers = new ArrayList<>();
+    public static  List<Developer> developers = new ArrayList<>();
     private PreparedStatement getAllLastNamesSt;
     private PreparedStatement getInfoByLastNameSt;
     private PreparedStatement getSkillsByLastNameSt;
@@ -20,6 +21,12 @@ public class DeveloperDaoService {
     private PreparedStatement addProjectDeveloperSt;
     private PreparedStatement getIdSkillByLanguageAndLevelSt;
     private PreparedStatement addDeveloperSkillSt;
+    private PreparedStatement existsByIdSt;
+    private PreparedStatement getIdByLastNameAndFirstNameSt;
+    private PreparedStatement deleteDeveloperFromDevelopersByIdSt;
+    private PreparedStatement deleteDeveloperFromProjectDevelopersByIdSt;
+    private PreparedStatement deleteDeveloperFromDevelopersSkillsByIdSt;
+
 
     public DeveloperDaoService(Connection connection) throws SQLException {
         PreparedStatement getAllInfoSt = connection.prepareStatement(
@@ -100,7 +107,25 @@ public class DeveloperDaoService {
         addDeveloperSkillSt = connection.prepareStatement(
                 "INSERT INTO developers_skills  VALUES ( ?, ?)");
 
+        existsByIdSt = connection.prepareStatement(
+                "SELECT count(*) > 0 AS developerExists FROM developers WHERE developer_id = ?"
+        );
 
+        getIdByLastNameAndFirstNameSt = connection.prepareStatement(
+                "SELECT developer_id FROM developers WHERE lastName LIKE ? AND firstName LIKE ?"
+        );
+
+        deleteDeveloperFromDevelopersByIdSt = connection.prepareStatement(
+                "DELETE FROM developers WHERE developer_id = ?"
+        );
+
+        deleteDeveloperFromProjectDevelopersByIdSt = connection.prepareStatement(
+                "DELETE FROM projects_developers WHERE developer_id = ?"
+        );
+
+        deleteDeveloperFromDevelopersSkillsByIdSt = connection.prepareStatement(
+                "DELETE FROM developers_skills WHERE developer_id = ?"
+        );
     }
 
 
@@ -150,7 +175,7 @@ public class DeveloperDaoService {
         int count = 0;
         try (ResultSet rs = getQuantityJavaDevelopersSt.executeQuery()) {
             rs.next();
-                count = rs.getInt("quantityLanguageDevelopers");
+            count = rs.getInt("quantityLanguageDevelopers");
         }
         System.out.println("\tВо всех компаниях работат  " + count  + " Java-разработчиков");
     }
@@ -165,28 +190,45 @@ public class DeveloperDaoService {
         }
     }
 
-    public void addDeveloper() throws SQLException {
-        long developerId;
+    public long getIdByLastNameAndFirstName(String lastName, String firstName) throws SQLException {
+        long id=0;
+        getIdByLastNameAndFirstNameSt.setString(1, "%" + lastName + "%");
+        getIdByLastNameAndFirstNameSt.setString(2, "%" + firstName + "%");
+        try (ResultSet rs = getIdByLastNameAndFirstNameSt.executeQuery()) {
+            rs.next();
+            id = rs.getInt("developer_id");
+        }
+        return id;
+    }
+
+    public int addDeveloper(String lastName, String firstName) throws SQLException {
+
+        long newDeveloperId;
         try(ResultSet rs = selectMaxIdSt.executeQuery()) {
             rs.next();
-            developerId = rs.getLong("maxId");
+            newDeveloperId = rs.getLong("maxId");
         }
-        developerId++;
-        addDeveloperSt.setLong(1, developerId);
-        Scanner sc5 = new Scanner(System.in);
-        System.out.println("Введите, пожалуйста следующие данные по разработчику");
-        System.out.print("\tФамилия разработчика : ");
-        String lastName = sc5.nextLine();
+        newDeveloperId++;
+        addDeveloperSt.setLong(1, newDeveloperId);
         addDeveloperSt.setString(2, lastName);
-        System.out.print("\tимя разработчика : ");
-        String firstName = sc5.nextLine();
         addDeveloperSt.setString(3, firstName);
+        Scanner sc5 = new Scanner(System.in);
         System.out.print("\tВозраст разработчика : ");
         int age = sc5.nextInt();
         addDeveloperSt.setInt(4, age);
         System.out.print("\tНазвание компании, в которой он работает : ");
         String company = sc5.nextLine();
         if(company.equals("")) company= sc5.nextLine();
+        boolean isCompanyNameCorrect = false;
+        for (Company companyFromField : CompanyDaoService.companies) {
+            if (companyFromField.getCompany_name().equals(company)) {
+                isCompanyNameCorrect = true;
+            };
+        }
+        if (!isCompanyNameCorrect) {
+            System.out.println("Компании с таким именем не существует. Введите корректные данные или внесите эту компанию в базу данных в разделе \"companies\" ");
+            return -1;
+        }
         long companyId = new CompanyDaoService(Storage.getInstance().getConnection()).getIdCompanyByName(company);
         addDeveloperSt.setLong(5, companyId);
         System.out.println("\tЭта компания разрабатывает следующие проекты:");
@@ -198,12 +240,12 @@ public class DeveloperDaoService {
         String project = sc5.nextLine();
         long projectId = new ProjectDaoService(Storage.getInstance().getConnection()).getIdProjectByName(project);
         addProjectDeveloperSt.setLong(1, projectId);
-        addProjectDeveloperSt.setLong(2, developerId);
+        addProjectDeveloperSt.setLong(2, newDeveloperId);
         System.out.print("\tЗарплата разработчика : ");
         int salary = sc5.nextInt();
         addDeveloperSt.setInt(6, salary);
         Developer developer = new Developer();
-        developer.setDeveloper_id(developerId);
+        developer.setDeveloper_id(newDeveloperId);
         developer.setLastName(lastName);
         developer.setFirstName(firstName);
         developer.setAge(age);
@@ -222,59 +264,68 @@ public class DeveloperDaoService {
             rs.next();
             skillId = rs.getLong("skill_id");
         }
-        addDeveloperSkillSt.setLong(1, developerId);
+
+        addDeveloperSkillSt.setLong(1, newDeveloperId);
         addDeveloperSkillSt.setLong(2, skillId);
 
         addDeveloperSt.executeUpdate();
         addProjectDeveloperSt.executeUpdate();
         addDeveloperSkillSt.executeUpdate();
+        if (exists(newDeveloperId)) {System.out.println("Разработчик успешно добавлен");}
+        else System.out.println("Что-то пошло не так и разработчик не был добавлен в базу данных");
 
+        return +1;
     }
 
-/*
-        createSt.setString(1, developer.getName());
-        createSt.setString(2,
-                developer.getBirthday() == null ? null : human.getBirthday().toString());
-        createSt.setString(3,
-                human.getGender() == null ? null : human.getGender().name());
-        createSt.executeUpdate();
-        long id;
-        try(ResultSet rs = selectMaxIdSt.executeQuery()) {
+    public boolean exists(long id) throws SQLException {
+        existsByIdSt.setLong(1, id);
+        try(ResultSet rs = existsByIdSt.executeQuery()) {
             rs.next();
-            id = rs.getLong("maxId");
+            return rs.getBoolean("developerExists");
         }
-        return id;
     }
 
- */
+    public void deleteDeveloper(String lastName, String firstName) throws SQLException {
+        long idToDelete = getIdByLastNameAndFirstName( lastName, firstName);
 
-/*
-    public void addDeveloper () throws SQLException {
-        long developer_id;
-        try(ResultSet rs = selectMaxIdSt.executeQuery()) {
-            rs.next();
-            developer_id = rs.getLong("maxId");
+        deleteDeveloperFromProjectDevelopersByIdSt.setLong(1, idToDelete);
+        deleteDeveloperFromProjectDevelopersByIdSt.executeUpdate();
+
+        deleteDeveloperFromDevelopersSkillsByIdSt.setLong(1, idToDelete);
+        deleteDeveloperFromDevelopersSkillsByIdSt.executeUpdate();
+
+        deleteDeveloperFromDevelopersByIdSt.setLong(1, idToDelete);
+        deleteDeveloperFromDevelopersByIdSt.executeUpdate();
+
+        Iterator<Developer> developerIterator = developers.iterator();
+        while(developerIterator.hasNext()) {
+
+            Developer nextDeveloper = developerIterator.next();
+            if (nextDeveloper.getDeveloper_id() == idToDelete) {
+                developerIterator.remove();
+            }
         }
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Введите фамилию разработчика : ");
-        String lastName = sc.nextLine();
-        System.out.print("Введите имя разработчика : ");
-        String firstName = sc.nextLine();
-        System.out.print("Введите возраст разработчика : ");
-        int age = sc.nextInt();
-        System.out.print("Введите название компании где он работает : ");
-        boolean isCompanyTrue = true;
-        do {
-            String companyName = sc.nextLine();
-        } while (!isCompanyTrue);
-        System.out.print("Введите зарплату разработчика : ");
-        int salary = sc.nextInt();
-        addDeveloperSt.setLong(1, developer_id+1);
-        addDeveloperSt.setString(1, developer_id+1);
     }
- */
 
+    public void deleteDeveloper(long id) throws SQLException {
+        deleteDeveloperFromProjectDevelopersByIdSt.setLong(1, id);
+        deleteDeveloperFromProjectDevelopersByIdSt.executeUpdate();
 
+        deleteDeveloperFromDevelopersSkillsByIdSt.setLong(1, id);
+        deleteDeveloperFromDevelopersSkillsByIdSt.executeUpdate();
+
+        deleteDeveloperFromDevelopersByIdSt.setLong(1, id);
+        deleteDeveloperFromDevelopersByIdSt.executeUpdate();
+
+        Iterator<Developer> developerIterator = developers.iterator();
+        while(developerIterator.hasNext()) {
+
+            Developer nextDeveloper = developerIterator.next();
+            if (nextDeveloper.getDeveloper_id() == id) {
+                developerIterator.remove();
+            }
+        }
+    }
 
 
 
@@ -327,17 +378,8 @@ public class DeveloperDaoService {
         updateSt.setLong(4, human.getId());
         updateSt.executeUpdate();
     }
-    public void deleteById(long id) throws SQLException {
-        deleteByIdSt.setLong(1, id);
-        deleteByIdSt.executeUpdate();
-    }
-    public boolean exists(long id) throws SQLException {
-        existsByIdSt.setLong(1, id);
-        try(ResultSet rs = existsByIdSt.executeQuery()) {
-            rs.next();
-            return rs.getBoolean("humanExists");
-        }
-    }
+
+
     public long save(Human human) throws SQLException {
         if (exists(human.getId())) {
             update(human);
@@ -369,12 +411,8 @@ public class DeveloperDaoService {
         updateSt = connection.prepareStatement(
                 "UPDATE human SET name = ?, birthday = ?, gender = ? WHERE id = ?"
         );
-        deleteByIdSt = connection.prepareStatement(
-                "DELETE FROM human WHERE id = ?"
-        );
-        existsByIdSt = connection.prepareStatement(
-                "SELECT count(*) > 0 AS humanExists FROM human WHERE id = ?"
-        );
+
+
         clearSt = connection.prepareStatement(
                 "DELETE FROM human"
         );

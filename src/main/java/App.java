@@ -33,11 +33,11 @@ public class App {
                                 break;
                             case 2:
                                 System.out.print("Введите фамилию : ");
-                                Scanner sc = new Scanner(System.in);
-                                String lastNameInput = sc.nextLine();
-                                developerDaoService.getInfoByLastName(lastNameInput);
-                                developerDaoService.getSkillsByLastName(lastNameInput);
-                                developerDaoService.getProjectsByLastName(lastNameInput);
+                                Scanner sc2 = new Scanner(System.in);
+                                String lastNameInput2 = sc2.nextLine();
+                                developerDaoService.getInfoByLastName(lastNameInput2);
+                                developerDaoService.getSkillsByLastName(lastNameInput2);
+                                developerDaoService.getProjectsByLastName(lastNameInput2);
                                 break;
                             case 3:
                                 developerDaoService.getQuantityJavaDevelopers();
@@ -46,13 +46,45 @@ public class App {
                                 developerDaoService.getListMiddleDevelopers();
                                 break;
                             case 5:
-                                developerDaoService.addDeveloper();
+                                System.out.println("\tВведите, пожалуйста следующие данные по разработчику");
+                                Scanner sc5 = new Scanner(System.in);
+                                System.out.print("\tВведите фамилию : ");
+                                String lastNameInput5 = sc5.nextLine();
+                                System.out.print("\tВведите имя : ");
+                                String firstNameInput5 = sc5.nextLine();
+                                int add = developerDaoService.addDeveloper(lastNameInput5, firstNameInput5);
+
                                 break;
                             case 6:
                                 System.out.println("Для внесения изменения хоть в одно поле данных необходимо обновить все поля");
-                                developerDaoService.addDeveloper();
+                                System.out.println("Данные по какому разработчику вы планируете изменить?");
+                                Scanner sc6 = new Scanner(System.in);
+                                System.out.print("Введите фамилию : ");
+                                String lastNameInput6 = sc6.nextLine();
+                                System.out.print("Введите имя : ");
+                                String firstNameInput6 = sc6.nextLine();
+                                long idToDelete;
+                                try {
+                                    idToDelete = developerDaoService.getIdByLastNameAndFirstName(lastNameInput6, firstNameInput6);
+                                }  catch (SQLException e) {
+                                    System.out.println("В базе данных такого разработчика не существует. Вводите корректные данные.");
+                                    break;
+                                }
+                                developerDaoService.deleteDeveloper(idToDelete);
+                                int update = developerDaoService.addDeveloper(lastNameInput6, firstNameInput6);
                                 break;
-                        }
+                            case 7:
+                                System.out.println("Внесите данные по разработчику, которого вы хотите удалить");
+                                Scanner sc7 = new Scanner(System.in);
+                                System.out.print("Введите фамилию : ");
+                                String lastNameInput7 = sc7.nextLine();
+                                System.out.print("Введите имя : ");
+                                String firstNameInput7 = sc7.nextLine();
+                                developerDaoService.deleteDeveloper(lastNameInput7, firstNameInput7);
+                                System.out.println("\tРазработчик успешно удален из базы данных.");
+                                break;
+                            }
+
                     } while (choiceDevelopers != 8);
                     break;
                 case 2:
