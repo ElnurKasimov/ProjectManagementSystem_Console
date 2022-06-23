@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class CustomerDaoService {
     public static  List<Customer> customers = new ArrayList<>();
@@ -13,6 +14,9 @@ public class CustomerDaoService {
     private PreparedStatement getAllInfoSt;
     private PreparedStatement getAllNamesSt;
     private PreparedStatement getProjectsNamesSt;
+    private PreparedStatement selectMaxIdSt;
+    private PreparedStatement  addCustomerSt;
+    private PreparedStatement existsByIdSt;
 
 
     public CustomerDaoService(Connection connection) throws SQLException {
@@ -40,6 +44,16 @@ public class CustomerDaoService {
                             " WHERE  customer_name  LIKE  ?"
             );
 
+        selectMaxIdSt = connection.prepareStatement(
+                "SELECT max(customer_id) AS maxId FROM customers"
+        );
+
+        addCustomerSt = connection.prepareStatement(
+                "INSERT INTO customers  VALUES ( ?, ?, ?)");
+
+        existsByIdSt = connection.prepareStatement(
+                "SELECT count(*) > 0 AS customerExists FROM customers WHERE customer_id = ?"
+        );
 
 
         }
@@ -61,7 +75,41 @@ public class CustomerDaoService {
                     }
                 }
             }
-
         }
+
+    public void addCustomer() throws SQLException {
+        long newCustomerId;
+        try(ResultSet rs = selectMaxIdSt.executeQuery()) {
+            rs.next();
+            newCustomerId = rs.getLong("maxId");
+        }
+        newCustomerId++;
+        System.out.print("\tВведите название заказчика : ");
+        Scanner sc = new Scanner(System.in);
+        String newCustomerName = sc.nextLine();
+        System.out.print("\tВведите репутацию заказчика (trustworthy, respectable, insolvent) : ");
+        String newCustomerReputation = sc.nextLine();
+        addCustomerSt.setLong(1, newCustomerId);
+        addCustomerSt.setString(2, newCustomerName);
+        addCustomerSt.setString(3, newCustomerReputation);
+        Customer  customer = new Customer();
+
+        customer.setCustomer_id(newCustomerId);
+        customer.setCustomer_name(newCustomerName);
+        customer.setReputation(Customer.Reputation.valueOf(newCustomerReputation));
+
+        addCustomerSt.executeUpdate();
+
+        if (existsCustomer(newCustomerId)) {System.out.println("\tЗаказчик успешно добавлен");}
+        else System.out.println("Что-то пошло не так и заказчик не был  добавлен в базу данных");
+    }
+
+    public boolean existsCustomer(long id) throws SQLException {
+        existsByIdSt.setLong(1, id);
+        try (ResultSet rs = existsByIdSt.executeQuery()) {
+            rs.next();
+            return rs.getBoolean("customerExists");
+        }
+    }
 
 }

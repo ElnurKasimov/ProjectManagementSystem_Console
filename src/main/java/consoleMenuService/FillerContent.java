@@ -39,16 +39,14 @@ public class FillerContent {
          case "Companies":
              contentMenu.put(1, "вывести все компании с указанием их основных характеристик");
              contentMenu.put(2, "добавить компанию");
-             contentMenu.put(3, "изменить данные компании");
-             contentMenu.put(4, "удалить компанию");
-             contentMenu.put(5, "перейти в верхнее меню");
+             contentMenu.put(3, "удалить компанию");
+             contentMenu.put(4, "перейти в верхнее меню");
              break;
          case "Customers":
              contentMenu.put(1, "вывести всех заказчиков с указанием их основных характеристик");
              contentMenu.put(2, "добавить заказчика");
-             contentMenu.put(3, "изменить данные заказчика");
-             contentMenu.put(4, "удалить заказчика");
-             contentMenu.put(5, "перейти в верхнее меню");
+             contentMenu.put(3, "удалить заказчика");
+             contentMenu.put(4, "перейти в верхнее меню");
      }
      return contentMenu;
  }

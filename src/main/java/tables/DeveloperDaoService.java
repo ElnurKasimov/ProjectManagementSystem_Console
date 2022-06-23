@@ -271,13 +271,13 @@ public class DeveloperDaoService {
         addDeveloperSt.executeUpdate();
         addProjectDeveloperSt.executeUpdate();
         addDeveloperSkillSt.executeUpdate();
-        if (exists(newDeveloperId)) {System.out.println("Разработчик успешно добавлен");}
+        if (existsDeveloper(newDeveloperId)) {System.out.println("Разработчик успешно добавлен");}
         else System.out.println("Что-то пошло не так и разработчик не был добавлен в базу данных");
 
         return +1;
     }
 
-    public boolean exists(long id) throws SQLException {
+    public boolean existsDeveloper(long id) throws SQLException {
         existsByIdSt.setLong(1, id);
         try(ResultSet rs = existsByIdSt.executeQuery()) {
             rs.next();
@@ -327,94 +327,4 @@ public class DeveloperDaoService {
         }
     }
 
-
-
 }
-
-
-/*
-  public List<Developer> getAll() throws SQLException, InterruptedException {
-        return getDevelopers(getAllByLastNameSt);
-    }
-    public long create(Developer developer) throws SQLException {
-        createSt.setString(1, developer.getName());
-        createSt.setString(2,
-                developer.getBirthday() == null ? null : human.getBirthday().toString());
-        createSt.setString(3,
-                human.getGender() == null ? null : human.getGender().name());
-        createSt.executeUpdate();
-        long id;
-        try(ResultSet rs = selectMaxIdSt.executeQuery()) {
-            rs.next();
-            id = rs.getLong("maxId");
-        }
-        return id;
-    }
-    public Human getById(long id) throws SQLException {
-        getByIdSt.setLong(1, id);
-        try(ResultSet rs = getByIdSt.executeQuery()) {
-            if (!rs.next()) {
-                return null;
-            }
-            Human result = new Human();
-            result.setId(id);
-            result.setName(rs.getString("name"));
-            String birthday = rs.getString("birthday");
-            if (birthday != null) {
-                result.setBirthday(LocalDate.parse(birthday));
-            }
-            String gender = rs.getString("gender");
-            if (gender != null) {
-                result.setGender(Human.Gender.valueOf(gender));
-            }
-            return result;
-        }
-    }
-    }
-    public void update(Human human) throws SQLException {
-        updateSt.setString(1, human.getName());
-        updateSt.setString(2, human.getBirthday().toString());
-        updateSt.setString(3, human.getGender().name());
-        updateSt.setLong(4, human.getId());
-        updateSt.executeUpdate();
-    }
-
-
-    public long save(Human human) throws SQLException {
-        if (exists(human.getId())) {
-            update(human);
-            return human.getId();
-        }
-        return create(human);
-    }
-    public void clear() throws SQLException {
-        clearSt.executeUpdate();
-    }
-      */
-
-
-
-/*
-        createSt = connection.prepareStatement(
-                "INSERT INTO human (lastName, firstName, age, company_id, salary) VALUES(?, ?, ?, ?, ?)"
-        );
-        getByIdSt = connection.prepareStatement(
-                "SELECT lastName, firstName, age, company_id, salary FROM developers WHERE id = ?"
-        );
-        getByIdSt = connection.prepareStatement(
-                "SELECT lastName, firstName, age, company_id, salary FROM developers WHERE id = ?"
-        );
-        //TODO  can be several records with the same lastName
-        getByLastNameSt = connection.prepareStatement(
-                "SELECT lastName, firstName, age, company_id, salary FROM developers WHERE lastName = ?"
-        );
-        updateSt = connection.prepareStatement(
-                "UPDATE human SET name = ?, birthday = ?, gender = ? WHERE id = ?"
-        );
-
-
-        clearSt = connection.prepareStatement(
-                "DELETE FROM human"
-        );
-    }
- */

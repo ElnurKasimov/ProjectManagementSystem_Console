@@ -131,15 +131,12 @@ public class App {
                                 companyDaoService.getAllNames();
                                 break;
                             case 2:
-                                System.out.println("Вы выбрали 2. Что хотите еще?");
+                                companyDaoService.addCompany();
                                 break;
                             case 3:
                                 System.out.println("Вы выбрали 3. Что хотите еще?");
-                                break;
-                            case 4:
-                                System.out.println("Вы выбрали 4. Что хотите еще?");
                         }
-                    } while (choiceCompanies != 5);
+                    } while (choiceCompanies != 4);
                     break;
                 case 4:
                     int choiceCustomers;
@@ -151,15 +148,12 @@ public class App {
                                 customerDaoService.getAllNames();
                                 break;
                             case 2:
-                                System.out.println("Вы выбрали 2. Что хотите еще?");
+                               customerDaoService.addCustomer();
                                 break;
                             case 3:
                                 System.out.println("Вы выбрали 3. Что хотите еще?");
-                                break;
-                            case 4:
-                                System.out.println("Вы выбрали 4. Что хотите еще?");
                         }
-                    } while (choiceCustomers != 5);
+                    } while (choiceCustomers != 4);
                     break;
             }
         } while (choice != 5);
