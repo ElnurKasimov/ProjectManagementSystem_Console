@@ -14,6 +14,7 @@ public class CompanyDaoService {
     public static List<Company> companies = new ArrayList<>();
 
     private PreparedStatement getAllInfoSt;
+    private PreparedStatement getAllNamesSt;
     private PreparedStatement getQuantityEmployeeSt;
     private PreparedStatement getIdCompanyByNameSt;
     private PreparedStatement getCompanyProjectsSt;
@@ -23,9 +24,7 @@ public class CompanyDaoService {
 
 
     public CompanyDaoService(Connection connection) throws SQLException {
-        PreparedStatement getAllInfoSt = connection.prepareStatement(
-                "SELECT * FROM companies"
-        );
+        getAllInfoSt = connection.prepareStatement("SELECT * FROM companies");
         try (ResultSet rs = getAllInfoSt.executeQuery()) {
             while (rs.next()) {
                 Company company = new Company();
@@ -38,6 +37,9 @@ public class CompanyDaoService {
             }
         }
 
+        getAllNamesSt = connection.prepareStatement(
+                " SELECT company_id, company_name, rating FROM companies"
+        );
         getQuantityEmployeeSt = connection.prepareStatement(
                 " SELECT COUNT(developer_id) FROM companies " +
                         "JOIN developers ON companies.company_id = developers.company_id " +
@@ -52,13 +54,13 @@ public class CompanyDaoService {
 
         getIdCompanyByNameSt = connection.prepareStatement(
                 "SELECT company_id FROM companies " +
-                    "WHERE company_name  LIKE  ?"
+                        "WHERE company_name  LIKE  ?"
         );
 
         getCompanyProjectsSt = connection.prepareStatement(
-               "SELECT project_name FROM projects JOIN companies " +
-                          "ON projects.company_id = companies.company_id " +
-                          "WHERE company_name  LIKE ?"
+                "SELECT project_name FROM projects JOIN companies " +
+                        "ON projects.company_id = companies.company_id " +
+                        "WHERE company_name  LIKE ?"
         );
 
         selectMaxIdSt = connection.prepareStatement(
@@ -75,14 +77,19 @@ public class CompanyDaoService {
 
     public void getAllNames() throws SQLException {
         System.out.println("Список всех IT компаний :");
-        for (Company company : companies) {
-            getQuantityEmployeeSt.setString(1, "%" + company.getCompany_name() + "%");
-            int result = 0;
-            try (ResultSet rs = getQuantityEmployeeSt.executeQuery()) {
-                while (rs.next()) {
-                    result = rs.getInt("COUNT(developer_id)");
+        try (ResultSet rs = getAllNamesSt.executeQuery()) {
+            while (rs.next()) {
+                long companyID = rs.getLong("company_id");
+                String companyName = rs.getString("company_name");
+                String companyRating = rs.getString("rating");
+                System.out.print("\t" + companyID + ". " + companyName + ", рейтинг - " + companyRating);
+                getQuantityEmployeeSt.setString(1, "%" + companyName + "%");
+                int result = 0;
+                try (ResultSet rs1 = getQuantityEmployeeSt.executeQuery()) {
+                    while (rs1.next()) {
+                        result = rs1.getInt("COUNT(developer_id)");
+                    }
                 }
-                System.out.print("\t" + company.getCompany_id() + ". " + company.getCompany_name() + ", рейтинг - " + company.getRating());
                 System.out.println(",  количество сотрудников - " + result);
             }
         }

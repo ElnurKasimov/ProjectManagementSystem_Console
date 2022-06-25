@@ -1,15 +1,18 @@
 package tables;
 
+import storage.Storage;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Date;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class ProjectDaoService {
-    private List<Project> projects = new ArrayList<>();
+    public static List<Project> projects = new ArrayList<>();
 
     private PreparedStatement getAllInfoSt;
     private PreparedStatement getAllNamesSt;
@@ -20,6 +23,12 @@ public class ProjectDaoService {
     private PreparedStatement getQuantityDevelopersByProjectNameSt;
     private PreparedStatement getBudgetByProjectNameSt;
     private PreparedStatement getIdProjectByNameSt;
+    private PreparedStatement selectMaxIdSt;
+    private  PreparedStatement addProjectSt;
+    private PreparedStatement existsByIdSt;
+    private PreparedStatement getIdByNameSt;
+    private PreparedStatement deleteProjectFromProjectsByIdSt;
+    private  PreparedStatement deleteProjectFromProjectDevelopersByIdSt;
 
 
     public ProjectDaoService(Connection connection) throws SQLException {
@@ -65,9 +74,9 @@ public class ProjectDaoService {
 
         getListDevelopersSt = connection.prepareStatement(
                 "SELECT lastName, firstName FROM projects JOIN projects_developers " +
-                "ON projects.project_id = projects_developers.project_id " +
-                "JOIN developers ON projects_developers.developer_id = developers.developer_id " +
-                "WHERE project_name  LIKE ?"
+                        "ON projects.project_id = projects_developers.project_id " +
+                        "JOIN developers ON projects_developers.developer_id = developers.developer_id " +
+                        "WHERE project_name  LIKE ?"
         );
 
         getQuantityDevelopersByProjectNameSt = connection.prepareStatement(
@@ -86,6 +95,29 @@ public class ProjectDaoService {
         getIdProjectByNameSt = connection.prepareStatement(
                 "SELECT project_id FROM projects " +
                         "WHERE project_name  LIKE  ?"
+        );
+
+        selectMaxIdSt = connection.prepareStatement(
+                "SELECT max(project_id) AS maxId FROM projects"
+        );
+
+        addProjectSt = connection.prepareStatement(
+                "INSERT INTO projects  VALUES ( ?, ?, ?, ?, ?, ?)");
+
+        existsByIdSt = connection.prepareStatement(
+                "SELECT count(*) > 0 AS projectExists FROM projects WHERE project_id = ?"
+        );
+
+        getIdByNameSt = connection.prepareStatement(
+                "SELECT project_id FROM projects WHERE project_name LIKE ? "
+        );
+
+        deleteProjectFromProjectsByIdSt = connection.prepareStatement(
+                "DELETE FROM projects WHERE project_id = ?"
+        );
+
+        deleteProjectFromProjectDevelopersByIdSt = connection.prepareStatement(
+                "DELETE FROM projects_developers WHERE project_id = ?"
         );
 
     }
@@ -179,5 +211,106 @@ public class ProjectDaoService {
             result = rs.getInt("project_id");
         }
         return result;
+    }
+
+    public int addProject(String name) throws SQLException {
+
+        long newProjectId;
+        try(ResultSet rs = selectMaxIdSt.executeQuery()) {
+            rs.next();
+            newProjectId = rs.getLong("maxId");
+        }
+        newProjectId++;
+        addProjectSt.setLong(1, newProjectId);
+        addProjectSt.setString(2, name);
+
+        Scanner sc6 = new Scanner(System.in);
+        System.out.print("\tНазвание компании,  которая его разрабатывает : ");
+        String company = sc6.nextLine();
+        if(company.equals("")) company= sc6.nextLine();
+        boolean isCompanyNameCorrect = false;
+        for (Company companyFromField : CompanyDaoService.companies) {
+            if (companyFromField.getCompany_name().equals(company)) {
+                isCompanyNameCorrect = true;
+            };
+        }
+        if (!isCompanyNameCorrect) {
+            System.out.println("Компании с таким именем не существует. Введите корректные данные или внесите эту компанию в базу данных в разделе \"companies\" ");
+            return -1;
+        }
+        long companyId = new CompanyDaoService(Storage.getInstance().getConnection()).getIdCompanyByName(company);
+        addProjectSt.setLong(3, companyId);
+        System.out.print("\tНазвание заказчика этого проекта : ");
+        String customer = sc6.nextLine();
+        if(customer.equals("")) customer= sc6.nextLine();
+        boolean isCustomerNameCorrect = false;
+        for (Customer customerFromField : CustomerDaoService.customers) {
+            if (customerFromField.getCustomer_name().equals(customer)) {
+                isCustomerNameCorrect = true;
+            };
+        }
+        if (!isCustomerNameCorrect) {
+            System.out.println("Заказчика с таким именем не существует. Введите корректные данные или внесите этого заказчика в базу данных в разделе \"companies\" ");
+            return -1;
+        }
+        long customerId = new CustomerDaoService(Storage.getInstance().getConnection()).getIdCustomerByName(customer);
+        addProjectSt.setLong(4, customerId);
+        System.out.print("\tСтоимость проекта : ");
+        int cost = sc6.nextInt();
+        addProjectSt.setInt(5, cost);
+        System.out.print("\tВведите дату запуска проекта в формате (ГГГГ-ММ-ДД) : ");
+        String startDate = sc6.nextLine();
+        if(startDate.equals("")) startDate= sc6.nextLine();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH);
+        LocalDate startLocalDate = LocalDate.parse(startDate, dtf);
+        java.sql.Date startSqlDate = java.sql.Date.valueOf(startLocalDate);
+        addProjectSt.setDate(6, startSqlDate);
+        addProjectSt.executeUpdate();
+        Project project = new Project();
+        project.setProject_id(newProjectId);
+        project.setProject_name(name);
+        project.setCompany_id(companyId);
+        project.setCustomer_id(customerId);
+        project.setCost(cost);
+        project.setStart_date(startLocalDate);
+        projects.add(project);
+        if (existsProject(newProjectId)) {System.out.println("Проект успешно добавлен");}
+        else System.out.println("Что-то пошло не так и проект не был добавлен в базу данных");
+        return +1;
+    }
+
+    public boolean existsProject(long id) throws SQLException {
+        existsByIdSt.setLong(1, id);
+        try(ResultSet rs = existsByIdSt.executeQuery()) {
+            rs.next();
+            return rs.getBoolean("projectExists");
+        }
+    }
+
+    public long getIdByName(String name) throws SQLException {
+        long id=0;
+        getIdByNameSt.setString(1, "%" + name + "%");
+          try (ResultSet rs = getIdByNameSt.executeQuery()) {
+            rs.next();
+            id = rs.getInt("project_id");
+        }
+        return id;
+    }
+
+    public void deleteProject(String name) throws SQLException {
+        long idToDelete = getIdByName(name);
+        deleteProjectFromProjectDevelopersByIdSt.setLong(1, idToDelete);
+        deleteProjectFromProjectDevelopersByIdSt.executeUpdate();
+        deleteProjectFromProjectsByIdSt.setLong(1, idToDelete);
+        deleteProjectFromProjectsByIdSt.executeUpdate();
+        projects.removeIf(nextProject -> nextProject.getProject_id() == idToDelete);
+    }
+
+    public void deleteProject(long id) throws SQLException {
+        deleteProjectFromProjectDevelopersByIdSt.setLong(1, id);
+        deleteProjectFromProjectDevelopersByIdSt.executeUpdate();
+        deleteProjectFromProjectsByIdSt.setLong(1, id);
+        deleteProjectFromProjectsByIdSt.executeUpdate();
+        projects.removeIf(nextProject -> nextProject.getProject_id() == id);
     }
 }

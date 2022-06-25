@@ -17,32 +17,33 @@ public class CustomerDaoService {
     private PreparedStatement selectMaxIdSt;
     private PreparedStatement  addCustomerSt;
     private PreparedStatement existsByIdSt;
+    private PreparedStatement getIdCustomerByNameSt;
 
 
     public CustomerDaoService(Connection connection) throws SQLException {
-            PreparedStatement getAllInfoSt = connection.prepareStatement(
-                    "SELECT * FROM customers"
-            );
-            try (ResultSet rs = getAllInfoSt.executeQuery()) {
-                while (rs.next()) {
-                    Customer customer = new Customer();
-                    customer.setCustomer_id(rs.getLong("customer_id"));
-                    if (rs.getString("customer_name") != null) {
-                        customer.setCustomer_name(rs.getString("customer_name"));
-                    }
-                    customer.setReputation(Customer.Reputation.valueOf(rs.getString("reputation")));
-                    customers.add(customer);
+        PreparedStatement getAllInfoSt = connection.prepareStatement(
+                "SELECT * FROM customers"
+        );
+        try (ResultSet rs = getAllInfoSt.executeQuery()) {
+            while (rs.next()) {
+                Customer customer = new Customer();
+                customer.setCustomer_id(rs.getLong("customer_id"));
+                if (rs.getString("customer_name") != null) {
+                    customer.setCustomer_name(rs.getString("customer_name"));
                 }
+                customer.setReputation(Customer.Reputation.valueOf(rs.getString("reputation")));
+                customers.add(customer);
             }
+        }
 
         getAllNamesSt = connection.prepareStatement(
                 " SELECT customer_id, customer_name, reputation FROM customers"
         );
         getProjectsNamesSt = connection.prepareStatement(
                 " SELECT project_name FROM customers JOIN projects " +
-                            "ON customers.customer_id = projects.customer_id " +
-                            " WHERE  customer_name  LIKE  ?"
-            );
+                        "ON customers.customer_id = projects.customer_id " +
+                        " WHERE  customer_name  LIKE  ?"
+        );
 
         selectMaxIdSt = connection.prepareStatement(
                 "SELECT max(customer_id) AS maxId FROM customers"
@@ -55,27 +56,30 @@ public class CustomerDaoService {
                 "SELECT count(*) > 0 AS customerExists FROM customers WHERE customer_id = ?"
         );
 
+        getIdCustomerByNameSt = connection.prepareStatement(
+                "SELECT customer_id FROM customers " +
+                        "WHERE customer_name  LIKE  ?"
+        );
+    }
 
-        }
-
-        public void getAllNames() throws SQLException {
-            System.out.println("Список всех  заказчиков :");
-            try (ResultSet rs = getAllNamesSt.executeQuery()) {
-                while (rs.next()) {
-                    long customerID = rs.getLong("customer_id");
-                    String customerName = rs.getString("customer_name");
-                    String customerReputation = rs.getString("reputation");
-                    System.out.print("\t" + customerID + ". " + customerName + ", репутация - " + customerReputation);
-                    System.out.println(", является заказчиком следующих проектов: ");
-                    getProjectsNamesSt.setString(1, "%" + customerName + "%");
-                    try (ResultSet rs1 = getProjectsNamesSt.executeQuery()) {
-                        while (rs1.next()) {
-                            System.out.println("\t\t" + rs1.getString("project_name"));
-                        }
+    public void getAllNames() throws SQLException {
+        System.out.println("Список всех  заказчиков :");
+        try (ResultSet rs = getAllNamesSt.executeQuery()) {
+            while (rs.next()) {
+                long customerID = rs.getLong("customer_id");
+                String customerName = rs.getString("customer_name");
+                String customerReputation = rs.getString("reputation");
+                System.out.print("\t" + customerID + ". " + customerName + ", репутация - " + customerReputation);
+                System.out.println(", является заказчиком следующих проектов: ");
+                getProjectsNamesSt.setString(1, "%" + customerName + "%");
+                try (ResultSet rs1 = getProjectsNamesSt.executeQuery()) {
+                    while (rs1.next()) {
+                        System.out.println("\t\t" + rs1.getString("project_name"));
                     }
                 }
             }
         }
+    }
 
     public void addCustomer() throws SQLException {
         long newCustomerId;
@@ -112,4 +116,14 @@ public class CustomerDaoService {
         }
     }
 
+    public long getIdCustomerByName(String name) throws SQLException {
+        getIdCustomerByNameSt.setString(1, "%" + name + "%");
+        int result = 0;
+        try (ResultSet rs = getIdCustomerByNameSt.executeQuery()) {
+            while (rs.next()) {
+                result = rs.getInt("customer_id");
+            }
+        }
+        return result;
+    }
 }

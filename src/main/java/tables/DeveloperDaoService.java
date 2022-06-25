@@ -11,9 +11,9 @@ import java.util.Scanner;
 public class DeveloperDaoService {
     public static  List<Developer> developers = new ArrayList<>();
     private PreparedStatement getAllLastNamesSt;
-    private PreparedStatement getInfoByLastNameSt;
-    private PreparedStatement getSkillsByLastNameSt;
-    private PreparedStatement getProjectsByLastNameSt;
+    private PreparedStatement getInfoByNameSt;
+    private PreparedStatement getSkillsByIdSt;
+    private PreparedStatement getProjectsByIdSt;
     private PreparedStatement getQuantityJavaDevelopersSt;
     private PreparedStatement getListMiddleDevelopersSt;
     private PreparedStatement selectMaxIdSt;
@@ -22,7 +22,7 @@ public class DeveloperDaoService {
     private PreparedStatement getIdSkillByLanguageAndLevelSt;
     private PreparedStatement addDeveloperSkillSt;
     private PreparedStatement existsByIdSt;
-    private PreparedStatement getIdByLastNameAndFirstNameSt;
+    private PreparedStatement getIdByNameSt;
     private PreparedStatement deleteDeveloperFromDevelopersByIdSt;
     private PreparedStatement deleteDeveloperFromProjectDevelopersByIdSt;
     private PreparedStatement deleteDeveloperFromDevelopersSkillsByIdSt;
@@ -52,27 +52,27 @@ public class DeveloperDaoService {
                 "SELECT lastName FROM developers"
         );
 
-        getInfoByLastNameSt = connection.prepareStatement(
+        getInfoByNameSt = connection.prepareStatement(
                 "SELECT lastName, firstName, age, salary, company_name " +
                         "FROM developers JOIN companies " +
                         "ON developers.company_id = companies.company_id" +
-                        " WHERE lastName  LIKE ?"
+                        " WHERE lastName  LIKE ? AND firstName LIKE ?"
         );
 
-        getSkillsByLastNameSt = connection.prepareStatement(
+        getSkillsByIdSt = connection.prepareStatement(
                 "SELECT language, level " +
                         "FROM developers JOIN developers_skills " +
                         "ON developers.developer_id = developers_skills.developer_id " +
                         "JOIN skills ON developers_skills.skill_id = skills.skill_id " +
-                        "WHERE lastName  LIKE ?"
+                        "WHERE developers.developer_id = ?"
         );
 
-        getProjectsByLastNameSt = connection.prepareStatement(
+        getProjectsByIdSt = connection.prepareStatement(
                 "SELECT  project_name " +
                         "FROM developers JOIN projects_developers " +
                         "ON developers.developer_id = projects_developers.developer_id " +
                         "JOIN projects ON projects_developers.project_id = projects.project_id " +
-                        "WHERE lastName  LIKE ?"
+                        "WHERE developers.developer_id = ?"
         );
 
         getQuantityJavaDevelopersSt = connection.prepareStatement(
@@ -111,7 +111,7 @@ public class DeveloperDaoService {
                 "SELECT count(*) > 0 AS developerExists FROM developers WHERE developer_id = ?"
         );
 
-        getIdByLastNameAndFirstNameSt = connection.prepareStatement(
+        getIdByNameSt = connection.prepareStatement(
                 "SELECT developer_id FROM developers WHERE lastName LIKE ? AND firstName LIKE ?"
         );
 
@@ -132,41 +132,45 @@ public class DeveloperDaoService {
 
 
 
-    public void getAllLastNames() throws SQLException {
-        System.out.println("Фамилии всех разработчиков");
+    public void getAllNames() throws SQLException {
+        System.out.println("Фамилии  и имена всех разработчиков");
         for (Developer developer : developers) {
-            System.out.println("\t" + developer.getDeveloper_id() + ". " + developer.getLastName());
+            System.out.println("\t" + developer.getDeveloper_id() + ". " + developer.getLastName() + " " + developer.getFirstName());
         }
     }
 
-    public void getInfoByLastName(String lastName ) throws SQLException {
-        getInfoByLastNameSt.setString(1, "%" + lastName + "%");
-        try (ResultSet rs = getInfoByLastNameSt.executeQuery()) {
+    public void getInfoByName(String lastName, String firstName ) throws SQLException {
+        getInfoByNameSt.setString(1, "%" + lastName + "%");
+        getInfoByNameSt.setString(2, "%" + firstName + "%");
+        try (ResultSet rs = getInfoByNameSt.executeQuery()) {
             while (rs.next()) {
-                System.out.println("\tф.и.о. -  " + rs.getString("lastName") + "  " + rs.getString("firstName") + ";  ");
-                System.out.println("\tВозраст -  " + rs.getInt("age")+ ";  ");
-                System.out.println("\tРаботает в компании -  " + rs.getString("company_name") + ";  ");
-                System.out.println("\tЗарплата -  " + rs.getInt("salary"));
+                long id = getIdByName(lastName, firstName);
+                System.out.print("id " + id);
+                System.out.print(", Возраст -  " + rs.getInt("age")+ ", ");
+                System.out.print("Работает в компании -  " + rs.getString("company_name") + ", ");
+                System.out.println("Зарплата -  " + rs.getInt("salary")+ "; ");
+                getSkillsById(id);
+                getProjectsById(id);
             }
         }
     }
 
-    public void getSkillsByLastName(String lastName) throws SQLException {
-        getSkillsByLastNameSt.setString(1, "%" + lastName + "%");
+    public void getSkillsById(long id) throws SQLException {
+        getSkillsByIdSt.setLong(1, id);
         System.out.println("\tВладеет языками: ");
-        try (ResultSet rs = getSkillsByLastNameSt.executeQuery()) {
+        try (ResultSet rs = getSkillsByIdSt.executeQuery()) {
             while (rs.next()) {
                 System.out.println("\t\t" + rs.getString("language") + " -  " + rs.getString("level") + ";  ");
             }
         }
     }
 
-    public void getProjectsByLastName(String lastName) throws SQLException {
-        getProjectsByLastNameSt.setString(1, "%" + lastName + "%");
+    public void getProjectsById(long id) throws SQLException {
+        getProjectsByIdSt.setLong(1, id);
         System.out.println("\tУчаствует в проектах: ");
-        try (ResultSet rs = getProjectsByLastNameSt.executeQuery()) {
+        try (ResultSet rs = getProjectsByIdSt.executeQuery()) {
             while (rs.next()) {
-                System.out.println("\t\t" + rs.getString("project_name") + ";  ");
+                System.out.println("\t\t" + rs.getString("project_name") + ".");
             }
         }
     }
@@ -190,11 +194,11 @@ public class DeveloperDaoService {
         }
     }
 
-    public long getIdByLastNameAndFirstName(String lastName, String firstName) throws SQLException {
+    public long getIdByName(String lastName, String firstName) throws SQLException {
         long id=0;
-        getIdByLastNameAndFirstNameSt.setString(1, "%" + lastName + "%");
-        getIdByLastNameAndFirstNameSt.setString(2, "%" + firstName + "%");
-        try (ResultSet rs = getIdByLastNameAndFirstNameSt.executeQuery()) {
+        getIdByNameSt.setString(1, "%" + lastName + "%");
+        getIdByNameSt.setString(2, "%" + firstName + "%");
+        try (ResultSet rs = getIdByNameSt.executeQuery()) {
             rs.next();
             id = rs.getInt("developer_id");
         }
@@ -286,7 +290,7 @@ public class DeveloperDaoService {
     }
 
     public void deleteDeveloper(String lastName, String firstName) throws SQLException {
-        long idToDelete = getIdByLastNameAndFirstName( lastName, firstName);
+        long idToDelete = getIdByName( lastName, firstName);
 
         deleteDeveloperFromProjectDevelopersByIdSt.setLong(1, idToDelete);
         deleteDeveloperFromProjectDevelopersByIdSt.executeUpdate();

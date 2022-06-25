@@ -29,15 +29,15 @@ public class App {
                         choiceDevelopers = menuService.get("Developers").makeChoice();
                         switch (choiceDevelopers) {
                             case 1:
-                                developerDaoService.getAllLastNames();
+                                developerDaoService.getAllNames();
                                 break;
                             case 2:
-                                System.out.print("Введите фамилию : ");
-                                Scanner sc2 = new Scanner(System.in);
-                                String lastNameInput2 = sc2.nextLine();
-                                developerDaoService.getInfoByLastName(lastNameInput2);
-                                developerDaoService.getSkillsByLastName(lastNameInput2);
-                                developerDaoService.getProjectsByLastName(lastNameInput2);
+                                System.out.print("\tВведите фамилию : ");
+                                Scanner sc12 = new Scanner(System.in);
+                                String lastNameInput2 = sc12.nextLine();
+                                System.out.print("\tВведите имя : ");
+                                String firstNameInput2 = sc12.nextLine();
+                                developerDaoService.getInfoByName(lastNameInput2, firstNameInput2);
                                 break;
                             case 3:
                                 developerDaoService.getQuantityJavaDevelopers();
@@ -47,25 +47,25 @@ public class App {
                                 break;
                             case 5:
                                 System.out.println("\tВведите, пожалуйста следующие данные по разработчику");
-                                Scanner sc5 = new Scanner(System.in);
+                                Scanner sc15 = new Scanner(System.in);
                                 System.out.print("\tВведите фамилию : ");
-                                String lastNameInput5 = sc5.nextLine();
+                                String lastNameInput5 = sc15.nextLine();
                                 System.out.print("\tВведите имя : ");
-                                String firstNameInput5 = sc5.nextLine();
+                                String firstNameInput5 = sc15.nextLine();
                                 int add = developerDaoService.addDeveloper(lastNameInput5, firstNameInput5);
 
                                 break;
                             case 6:
                                 System.out.println("Для внесения изменения хоть в одно поле данных необходимо обновить все поля");
                                 System.out.println("Данные по какому разработчику вы планируете изменить?");
-                                Scanner sc6 = new Scanner(System.in);
+                                Scanner sc16 = new Scanner(System.in);
                                 System.out.print("Введите фамилию : ");
-                                String lastNameInput6 = sc6.nextLine();
+                                String lastNameInput6 = sc16.nextLine();
                                 System.out.print("Введите имя : ");
-                                String firstNameInput6 = sc6.nextLine();
+                                String firstNameInput6 = sc16.nextLine();
                                 long idToDelete;
                                 try {
-                                    idToDelete = developerDaoService.getIdByLastNameAndFirstName(lastNameInput6, firstNameInput6);
+                                    idToDelete = developerDaoService.getIdByName(lastNameInput6, firstNameInput6);
                                 }  catch (SQLException e) {
                                     System.out.println("В базе данных такого разработчика не существует. Вводите корректные данные.");
                                     break;
@@ -75,15 +75,15 @@ public class App {
                                 break;
                             case 7:
                                 System.out.println("Внесите данные по разработчику, которого вы хотите удалить");
-                                Scanner sc7 = new Scanner(System.in);
+                                Scanner sc17 = new Scanner(System.in);
                                 System.out.print("Введите фамилию : ");
-                                String lastNameInput7 = sc7.nextLine();
+                                String lastNameInput7 = sc17.nextLine();
                                 System.out.print("Введите имя : ");
-                                String firstNameInput7 = sc7.nextLine();
+                                String firstNameInput7 = sc17.nextLine();
                                 developerDaoService.deleteDeveloper(lastNameInput7, firstNameInput7);
                                 System.out.println("\tРазработчик успешно удален из базы данных.");
                                 break;
-                            }
+                        }
 
                     } while (choiceDevelopers != 8);
                     break;
@@ -93,30 +93,57 @@ public class App {
                         menuService.get("Projects").printMenu();
                         choiceProjects = menuService.get("Projects").makeChoice();
                         switch (choiceProjects) {
-
                             case 1:
                                 projectDaoService.getAllNames();
                                 break;
                             case 2:
                                 System.out.print("Введите название проекта : ");
-                                Scanner sc2 = new Scanner(System.in);
-                                String projectNameInput2 = sc2.nextLine();
+                                Scanner sc22 = new Scanner(System.in);
+                                String projectNameInput2 = sc22.nextLine();
                                 projectDaoService.getInfoByName(projectNameInput2);
                                 break;
                             case 3:
                                 System.out.print("Введите название проекта : ");
-                                Scanner sc3 = new Scanner(System.in);
-                                String projectNameInput3 = sc3.nextLine();
+                                Scanner sc23 = new Scanner(System.in);
+                                String projectNameInput3 = sc23.nextLine();
                                 projectDaoService.getListDevelopers(projectNameInput3);
                                 break;
                             case 4:
                                 System.out.print("Введите название проекта : ");
-                                Scanner sc4 = new Scanner(System.in);
-                                String projectNameInput4 = sc4.nextLine();
+                                Scanner sc24 = new Scanner(System.in);
+                                String projectNameInput4 = sc24.nextLine();
                                 projectDaoService.getBudgetByProjectName(projectNameInput4);
                                 break;
                             case 5:
                                 projectDaoService.getProjectsListInSpecialFormat();
+                                break;
+                            case 6:
+                                System.out.print("Введите название проекта : ");
+                                Scanner sc26 = new Scanner(System.in);
+                                String projectNameInput6 = sc26.nextLine();
+                                int add = projectDaoService.addProject(projectNameInput6);
+                                break;
+                            case 7:
+                                System.out.println("Для внесения изменения хоть в одно поле данных необходимо обновить все поля");
+                                System.out.print("Введите название проекта, данные по которому вы планируете изменить: ");
+                                Scanner sc27 = new Scanner(System.in);
+                                String nameInput7 = sc27.nextLine();
+                                long idToDelete;
+                                try {
+                                    idToDelete = projectDaoService.getIdByName(nameInput7);
+                                }  catch (SQLException e) {
+                                    System.out.println("В базе данных такого проекта не существует. Вводите корректные данные.");
+                                    break;
+                                }
+                                projectDaoService.deleteProject(idToDelete);
+                                int update = projectDaoService.addProject(nameInput7);
+                                break;
+                            case 8:
+                                System.out.println("Внесите название проекта, которого вы хотите удалить");
+                                Scanner sc28 = new Scanner(System.in);
+                                String nameInput8 = sc28.nextLine();
+                                projectDaoService.deleteProject(nameInput8);
+                                System.out.println("\tПроект успешно удален из базы данных.");
                                 break;
                         }
                     } while (choiceProjects != 9);
@@ -148,7 +175,7 @@ public class App {
                                 customerDaoService.getAllNames();
                                 break;
                             case 2:
-                               customerDaoService.addCustomer();
+                                customerDaoService.addCustomer();
                                 break;
                             case 3:
                                 System.out.println("Вы выбрали 3. Что хотите еще?");
