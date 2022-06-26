@@ -291,44 +291,30 @@ public class DeveloperDaoService {
 
     public void deleteDeveloper(String lastName, String firstName) throws SQLException {
         long idToDelete = getIdByName( lastName, firstName);
-
         deleteDeveloperFromProjectDevelopersByIdSt.setLong(1, idToDelete);
         deleteDeveloperFromProjectDevelopersByIdSt.executeUpdate();
-
         deleteDeveloperFromDevelopersSkillsByIdSt.setLong(1, idToDelete);
         deleteDeveloperFromDevelopersSkillsByIdSt.executeUpdate();
-
         deleteDeveloperFromDevelopersByIdSt.setLong(1, idToDelete);
         deleteDeveloperFromDevelopersByIdSt.executeUpdate();
-
-        Iterator<Developer> developerIterator = developers.iterator();
-        while(developerIterator.hasNext()) {
-
-            Developer nextDeveloper = developerIterator.next();
-            if (nextDeveloper.getDeveloper_id() == idToDelete) {
-                developerIterator.remove();
-            }
+        developers.removeIf(nextDeveloper -> nextDeveloper.getDeveloper_id() == idToDelete);
+        if (!existsDeveloper(idToDelete)) { System.out.println("Разработчик успешно удален из базы данных.");}
+        else {
+            System.out.println("Что-то пошло не так и разработчик не был удален из базы данных");
         }
     }
 
     public void deleteDeveloper(long id) throws SQLException {
         deleteDeveloperFromProjectDevelopersByIdSt.setLong(1, id);
         deleteDeveloperFromProjectDevelopersByIdSt.executeUpdate();
-
         deleteDeveloperFromDevelopersSkillsByIdSt.setLong(1, id);
         deleteDeveloperFromDevelopersSkillsByIdSt.executeUpdate();
-
         deleteDeveloperFromDevelopersByIdSt.setLong(1, id);
         deleteDeveloperFromDevelopersByIdSt.executeUpdate();
-
-        Iterator<Developer> developerIterator = developers.iterator();
-        while(developerIterator.hasNext()) {
-
-            Developer nextDeveloper = developerIterator.next();
-            if (nextDeveloper.getDeveloper_id() == id) {
-                developerIterator.remove();
-            }
+        developers.removeIf(nextDeveloper -> nextDeveloper.getDeveloper_id() == id);
+        if (!existsDeveloper(id)) { System.out.println("Разработчик успешно удален из базы данных.");}
+        else {
+            System.out.println("Что-то пошло не так и разработчик не был удален из базы данных");
         }
     }
-
 }

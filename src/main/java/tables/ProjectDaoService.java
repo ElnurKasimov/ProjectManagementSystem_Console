@@ -159,7 +159,6 @@ public class ProjectDaoService {
     }
 
     public void getListDevelopers (String name) throws SQLException {
-        System.out.println("\tВ проекте " + name + " задействованы следующие разработчики: ");
         getListDevelopersSt.setString(1, name);
         try (ResultSet rs1 = getListDevelopersSt.executeQuery()) {
             while (rs1.next()) {
@@ -167,7 +166,6 @@ public class ProjectDaoService {
             }
         }
     }
-
 
     public void getQuantityDevelopers (String name) throws SQLException {
         getQuantityDevelopersByProjectNameSt.setString(1, name);
@@ -214,7 +212,6 @@ public class ProjectDaoService {
     }
 
     public int addProject(String name) throws SQLException {
-
         long newProjectId;
         try(ResultSet rs = selectMaxIdSt.executeQuery()) {
             rs.next();
@@ -223,7 +220,6 @@ public class ProjectDaoService {
         newProjectId++;
         addProjectSt.setLong(1, newProjectId);
         addProjectSt.setString(2, name);
-
         Scanner sc6 = new Scanner(System.in);
         System.out.print("\tНазвание компании,  которая его разрабатывает : ");
         String company = sc6.nextLine();
@@ -304,6 +300,10 @@ public class ProjectDaoService {
         deleteProjectFromProjectsByIdSt.setLong(1, idToDelete);
         deleteProjectFromProjectsByIdSt.executeUpdate();
         projects.removeIf(nextProject -> nextProject.getProject_id() == idToDelete);
+        if (!existsProject(idToDelete)) { System.out.println("Проект успешно удален из базы данных.");}
+        else {
+            System.out.println("Что-то пошло не так и проект не был удален из базы данных");
+        }
     }
 
     public void deleteProject(long id) throws SQLException {
@@ -312,5 +312,9 @@ public class ProjectDaoService {
         deleteProjectFromProjectsByIdSt.setLong(1, id);
         deleteProjectFromProjectsByIdSt.executeUpdate();
         projects.removeIf(nextProject -> nextProject.getProject_id() == id);
+        if (!existsProject(id)) { System.out.println("Проект успешно удален из базы данных.");}
+        else {
+            System.out.println("Что-то пошло не так и проект не был удален из базы данных");
+        }
     }
 }

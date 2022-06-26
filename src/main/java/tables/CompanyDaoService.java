@@ -21,7 +21,7 @@ public class CompanyDaoService {
     private PreparedStatement selectMaxIdSt;
     private PreparedStatement  addCompanySt;
     private PreparedStatement existsByIdSt;
-
+    private PreparedStatement deleteCompanyFromCompaniesByNameSt;
 
     public CompanyDaoService(Connection connection) throws SQLException {
         getAllInfoSt = connection.prepareStatement("SELECT * FROM companies");
@@ -73,6 +73,11 @@ public class CompanyDaoService {
         existsByIdSt = connection.prepareStatement(
                 "SELECT count(*) > 0 AS companyExists FROM companies WHERE company_id = ?"
         );
+
+        deleteCompanyFromCompaniesByNameSt = connection.prepareStatement(
+                "DELETE FROM companies WHERE company_name LIKE  ?"
+        );
+
     }
 
     public void getAllNames() throws SQLException {
@@ -149,6 +154,17 @@ public class CompanyDaoService {
         try (ResultSet rs = existsByIdSt.executeQuery()) {
             rs.next();
             return rs.getBoolean("companyExists");
+        }
+    }
+
+    public void deleteCompany(String name) throws SQLException {
+        long idToDelete = getIdCompanyByName(name);
+        deleteCompanyFromCompaniesByNameSt.setString(1, "%" + name + "%");
+        deleteCompanyFromCompaniesByNameSt.executeUpdate();
+        companies.removeIf(company -> company.getCompany_name().equals(name));
+        if (!existsCompany(idToDelete)) { System.out.println("Компания успешно удалена из базы данных.");}
+        else {
+            System.out.println("Что-то пошло не так и компания не была удалена из базы данных");
         }
     }
 

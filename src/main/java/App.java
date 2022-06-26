@@ -3,6 +3,7 @@ import storage.Storage;
 import tables.*;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class App {
@@ -81,7 +82,6 @@ public class App {
                                 System.out.print("Введите имя : ");
                                 String firstNameInput7 = sc17.nextLine();
                                 developerDaoService.deleteDeveloper(lastNameInput7, firstNameInput7);
-                                System.out.println("\tРазработчик успешно удален из базы данных.");
                                 break;
                         }
 
@@ -106,6 +106,7 @@ public class App {
                                 System.out.print("Введите название проекта : ");
                                 Scanner sc23 = new Scanner(System.in);
                                 String projectNameInput3 = sc23.nextLine();
+                                System.out.println("\tВ проекте " + projectNameInput3 + " задействованы следующие разработчики: ");
                                 projectDaoService.getListDevelopers(projectNameInput3);
                                 break;
                             case 4:
@@ -139,11 +140,10 @@ public class App {
                                 int update = projectDaoService.addProject(nameInput7);
                                 break;
                             case 8:
-                                System.out.println("Внесите название проекта, которого вы хотите удалить");
+                                System.out.print("Внесите название проекта, которого вы хотите удалить :");
                                 Scanner sc28 = new Scanner(System.in);
                                 String nameInput8 = sc28.nextLine();
                                 projectDaoService.deleteProject(nameInput8);
-                                System.out.println("\tПроект успешно удален из базы данных.");
                                 break;
                         }
                     } while (choiceProjects != 9);
@@ -161,7 +161,20 @@ public class App {
                                 companyDaoService.addCompany();
                                 break;
                             case 3:
-                                System.out.println("Вы выбрали 3. Что хотите еще?");
+                                System.out.print("Внесите название компании, которую вы хотите удалить :");
+                                Scanner sc33 = new Scanner(System.in);
+                                String nameInput3 = sc33.nextLine();
+                                ArrayList<String> companyProjects = new CompanyDaoService(Storage.getInstance().getConnection()).getCompanyProjects(nameInput3);
+                                if (companyProjects.size() == 0) {
+                                    companyDaoService.deleteCompany(nameInput3);
+                                    break;}
+                                System.out.println("\tЭта компания разрабатывает следующие проекты:");
+                                for (String project : companyProjects) {
+                                    System.out.println("\t\t- " + project + ", в котором задействованы следующие разработчики:");
+                                    new ProjectDaoService(Storage.getInstance().getConnection()).getListDevelopers(project);
+                                }
+                                System.out.println("Для того, чтобы удалить эту компанию - внесите ссответствующие изменения в таблицы developers, projects");
+                                break;
                         }
                     } while (choiceCompanies != 4);
                     break;
@@ -178,7 +191,19 @@ public class App {
                                 customerDaoService.addCustomer();
                                 break;
                             case 3:
-                                System.out.println("Вы выбрали 3. Что хотите еще?");
+                                System.out.print("Внесите название заказчика, которого вы хотите удалить :");
+                                Scanner sc43 = new Scanner(System.in);
+                                String nameInput3 = sc43.nextLine();
+                                ArrayList<String> customerProjects = customerDaoService.getProjectsNames(nameInput3);
+                                if (customerProjects.size() == 0) {
+                                    customerDaoService.deleteCustomer(nameInput3);
+                                    break;}
+                                System.out.println("\tЭтот заказчик заказал следующие проекты:");
+                                for (String project : customerDaoService.getProjectsNames(nameInput3)) {
+                                    System.out.println("\t\t- " + project );
+                                }
+                                System.out.println("Для того, чтобы удалить этого заказчика - внесите ссответствующие изменения в таблицу projects");
+                                break;
                         }
                     } while (choiceCustomers != 4);
                     break;

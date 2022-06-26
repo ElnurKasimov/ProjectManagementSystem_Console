@@ -18,7 +18,7 @@ public class CustomerDaoService {
     private PreparedStatement  addCustomerSt;
     private PreparedStatement existsByIdSt;
     private PreparedStatement getIdCustomerByNameSt;
-
+    private PreparedStatement deleteCustomerFromCustomersByNameSt;
 
     public CustomerDaoService(Connection connection) throws SQLException {
         PreparedStatement getAllInfoSt = connection.prepareStatement(
@@ -60,6 +60,10 @@ public class CustomerDaoService {
                 "SELECT customer_id FROM customers " +
                         "WHERE customer_name  LIKE  ?"
         );
+
+        deleteCustomerFromCustomersByNameSt = connection.prepareStatement(
+                "DELETE FROM customers WHERE customer_name LIKE  ?"
+        );
     }
 
     public void getAllNames() throws SQLException {
@@ -71,14 +75,22 @@ public class CustomerDaoService {
                 String customerReputation = rs.getString("reputation");
                 System.out.print("\t" + customerID + ". " + customerName + ", репутация - " + customerReputation);
                 System.out.println(", является заказчиком следующих проектов: ");
-                getProjectsNamesSt.setString(1, "%" + customerName + "%");
-                try (ResultSet rs1 = getProjectsNamesSt.executeQuery()) {
-                    while (rs1.next()) {
-                        System.out.println("\t\t" + rs1.getString("project_name"));
-                    }
+                for (String project : getProjectsNames(customerName)) {
+                    System.out.println("\t\t" + project);
                 }
             }
         }
+    }
+
+    public ArrayList<String>  getProjectsNames(String customerName) throws SQLException {
+        ArrayList<String> projectNames = new ArrayList<>();
+        getProjectsNamesSt.setString(1, "%" + customerName + "%");
+        try (ResultSet rs = getProjectsNamesSt.executeQuery()) {
+            while (rs.next()) {
+                projectNames.add(rs.getString("project_name"));
+            }
+        }
+        return projectNames;
     }
 
     public void addCustomer() throws SQLException {
@@ -104,7 +116,7 @@ public class CustomerDaoService {
 
         addCustomerSt.executeUpdate();
 
-        if (existsCustomer(newCustomerId)) {System.out.println("\tЗаказчик успешно добавлен");}
+        if (existsCustomer(newCustomerId)) {System.out.println("Заказчик успешно добавлен");}
         else System.out.println("Что-то пошло не так и заказчик не был  добавлен в базу данных");
     }
 
@@ -125,5 +137,16 @@ public class CustomerDaoService {
             }
         }
         return result;
+    }
+
+    public void deleteCustomer(String name) throws SQLException {
+        long idToDelete = getIdCustomerByName(name);
+        deleteCustomerFromCustomersByNameSt.setString(1, "%" + name + "%");
+        deleteCustomerFromCustomersByNameSt.executeUpdate();
+        customers.removeIf(customer -> customer.getCustomer_name().equals(name));
+        if (!existsCustomer(idToDelete)) { System.out.println("Заказчик успешно удален из базы данных.");}
+        else {
+            System.out.println("Что-то пошло не так и заказчик не был удален из базы данных");
+        }
     }
 }
