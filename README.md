@@ -1,5 +1,5 @@
 # ProjectManagementSystem
-simple console CRM for existing MySQL DB using JDBC
+console application for simple PMS using JDBC and MySQL DB
 
 There are several importatn files in the root directory:
 1. prefs.json  - contains database access settings. You can put into Your own,
